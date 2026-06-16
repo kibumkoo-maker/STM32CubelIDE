@@ -1,0 +1,40 @@
+11:19:51 **** Incremental Build of configuration Debug for project SUPERSONIC ****
+make -j32 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'trig':
+../Core/Src/main.c:102:22: error: 'TRIG1_GPIO_Port' undeclared (first use in this function); did you mean 'TCK_GPIO_Port'?
+  102 |    HAL_GPIO_WritePin(TRIG1_GPIO_Port, TRIG1_Pin, HIGH);
+      |                      ^~~~~~~~~~~~~~~
+      |                      TCK_GPIO_Port
+../Core/Src/main.c:102:22: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:102:39: error: 'TRIG1_Pin' undeclared (first use in this function)
+  102 |    HAL_GPIO_WritePin(TRIG1_GPIO_Port, TRIG1_Pin, HIGH);
+      |                                       ^~~~~~~~~
+../Core/Src/main.c: In function 'echo':
+../Core/Src/main.c:115:27: error: 'ECHO1_GPIO_Port' undeclared (first use in this function); did you mean 'SWO_GPIO_Port'?
+  115 |    while(HAL_GPIO_ReadPin(ECHO1_GPIO_Port, ECHO1_Pin) == LOW){}
+      |                           ^~~~~~~~~~~~~~~
+      |                           SWO_GPIO_Port
+../Core/Src/main.c:115:44: error: 'ECHO1_Pin' undeclared (first use in this function)
+  115 |    while(HAL_GPIO_ReadPin(ECHO1_GPIO_Port, ECHO1_Pin) == LOW){}
+      |                                            ^~~~~~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:349:10: error: redefinition of 'echo'
+  349 | uint32_t echo(void) {
+      |          ^~~~
+../Core/Src/main.c:111:19: note: previous definition of 'echo' with type 'long unsigned int(void)'
+  111 | long unsigned int echo(void)
+      |                   ^~~~
+../Core/Src/main.c: In function 'echo':
+../Core/Src/main.c:354:30: error: 'ECHO1_GPIO_Port' undeclared (first use in this function); did you mean 'SWO_GPIO_Port'?
+  354 |      while (HAL_GPIO_ReadPin(ECHO1_GPIO_Port, ECHO1_Pin) == GPIO_PIN_RESET) {
+      |                              ^~~~~~~~~~~~~~~
+      |                              SWO_GPIO_Port
+../Core/Src/main.c:354:47: error: 'ECHO1_Pin' undeclared (first use in this function)
+  354 |      while (HAL_GPIO_ReadPin(ECHO1_GPIO_Port, ECHO1_Pin) == GPIO_PIN_RESET) {
+      |                                               ^~~~~~~~~
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j32 all" terminated with exit code 2. Build might be incomplete.
+
+11:19:51 Build Failed. 8 errors, 0 warnings. (took 525ms)
+

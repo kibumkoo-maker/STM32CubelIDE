@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HC-SR04 Dual Channel Monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg:     #080c10;
+    --panel:  #0d1520;
+    --border: #1a2e44;
+    --cyan:   #00e5ff;   /* CH1 색상 */
+    --lime:   #aaff00;   /* CH2 색상 */
+    --green:  #00ff88;
+    --orange: #ff6d00;
+    --red:    #ff1744;
+    --dim:    #3a5068;
+    --text:   #b0cfe8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, #0d1a28, #081018);
+  }
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+    color: var(--cyan);
+    text-shadow: 0 0 12px #00e5ff80;
+  }
+  .logo em { color: var(--lime); font-style: normal; }
+  .hdr-right {
+    display: flex; align-items: center; gap: 20px;
+    font-size: .75rem; color: var(--dim);
+  }
+  .led { width:8px; height:8px; border-radius:50%; background:var(--dim); display:inline-block; margin-right:5px; vertical-align:middle; transition:.3s; }
+  .led.on  { background:var(--green); box-shadow:0 0 8px #00ff8880; }
+  .led.err { background:var(--red);   box-shadow:0 0 8px var(--red); }
+
+  /* ── 메인 ── */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    grid-template-rows: 1fr auto;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  /* ── 패널 ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    position: relative;
+  }
+  .panel.ch1::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:linear-gradient(90deg,transparent,var(--cyan),transparent); }
+  .panel.ch2::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:linear-gradient(90deg,transparent,var(--lime),transparent); }
+  .panel.neutral::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:linear-gradient(90deg,transparent,var(--green),transparent); }
+
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: var(--dim);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  /* ── 채널 카드 ── */
+  .ch-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .big-box {
+    text-align: center;
+    padding: 20px 8px 16px;
+  }
+  .ch-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    margin-bottom: 8px;
+  }
+  .ch1 .ch-label { color: var(--cyan); }
+  .ch2 .ch-label { color: var(--lime); }
+
+  .big-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    line-height: 1;
+    transition: color .3s, text-shadow .3s;
+  }
+  .ch1 .big-num { color: var(--cyan); text-shadow: 0 0 14px #00e5ff60; }
+  .ch2 .big-num { color: var(--lime); text-shadow: 0 0 14px #aaff0060; }
+  .big-num.warn   { color: var(--orange) !important; text-shadow: 0 0 14px var(--orange) !important; }
+  .big-num.danger { color: var(--red)    !important; text-shadow: 0 0 14px var(--red)    !important; }
+  .big-num.oor    { color: var(--dim)    !important; text-shadow: none !important; font-size: 1.2rem; }
+  .big-unit { font-size: .8rem; color: var(--dim); margin-top: 4px; }
+
+  /* ── 게이지 ── */
+  .gauge-wrap { margin-top: 6px; }
+  .gauge-lbl  { display:flex; justify-content:space-between; font-size:.68rem; color:var(--dim); margin-bottom:3px; }
+  .gauge-track { height:7px; background:#0a1825; border-radius:4px; border:1px solid var(--border); overflow:hidden; }
+  .gauge-fill  { height:100%; width:0%; border-radius:4px; transition:width .25s, background .3s; }
+  .ch1 .gauge-fill { background: linear-gradient(90deg, #0066ff, var(--cyan)); }
+  .ch2 .gauge-fill { background: linear-gradient(90deg, #55aa00, var(--lime)); }
+  .gauge-fill.warn   { background: linear-gradient(90deg, var(--orange), #ffab40) !important; }
+  .gauge-fill.danger { background: linear-gradient(90deg, var(--red), #ff6090)    !important; }
+
+  /* ── 통계 ── */
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 5px 0; border-bottom: 1px solid #1a2e4433; font-size: .76rem;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--dim); }
+  .stat-val   { font-family:'Orbitron',sans-serif; font-size:.78rem; }
+  .ch1 .stat-val { color: var(--cyan); }
+  .ch2 .stat-val { color: var(--lime); }
+
+  /* ── 차트 영역 ── */
+  .chart-area {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .chart-panel { flex: 1; min-height: 0; }
+  .chart-container { position: relative; height: calc(100% - 30px); min-height: 200px; }
+
+  /* ── 로그 ── */
+  .log-panel { grid-column: 2; }  /* 차트영역이 2행을 차지하므로 불필요하지만 남김 */
+  .log-scroll {
+    height: 140px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .log-scroll::-webkit-scrollbar { width:4px; }
+  .log-scroll::-webkit-scrollbar-thumb { background:var(--border); }
+  .log-line {
+    font-size:.72rem; padding:2px 0;
+    border-bottom:1px solid #0a141e;
+    display:flex; gap:10px;
+    animation: fadeIn .2s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-3px)} to{opacity:1;transform:none} }
+  .log-ts { color:var(--dim); flex-shrink:0; }
+  .log-ch1 { color:var(--cyan); }
+  .log-ch2 { color:var(--lime); }
+  .log-oor { color:var(--red); }
+
+  /* ── 푸터 ── */
+  footer {
+    padding: 9px 22px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    font-size: .73rem; color: var(--dim);
+    background: var(--panel);
+    flex-wrap: wrap;
+  }
+  .btn {
+    background:transparent; border:1px solid var(--border);
+    color:var(--cyan); font-family:'Share Tech Mono',monospace;
+    font-size:.73rem; padding:4px 12px; cursor:pointer;
+    border-radius:2px; transition:.2s;
+  }
+  .btn:hover  { border-color:var(--cyan); box-shadow:0 0 8px #00e5ff40; }
+  .btn.active { background:#00e5ff18; border-color:var(--cyan); }
+  .thr-wrap { display:flex; align-items:center; gap:6px; margin-left:auto; }
+  .thr-wrap input {
+    background:#0a1825; border:1px solid var(--border);
+    color:var(--text); font-family:'Share Tech Mono',monospace;
+    font-size:.73rem; padding:3px 7px; width:68px; border-radius:2px;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+  .alert .big-num { animation: blink .5s infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">HC-SR04 <em>DUAL</em> CHANNEL MONITOR</div>
+  <div class="hdr-right">
+    <div><span class="led" id="led"></span><span id="conn-lbl">DISCONNECTED</span></div>
+    <div id="hz">-- Hz</div>
+    <div id="uptime">00:00:00</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── CH1 사이드 패널 ── -->
+  <div class="ch-card">
+
+    <div class="panel ch1 big-box" id="vp1">
+      <div class="panel-title ch-label">CH 1 · SENSOR A</div>
+      <div class="big-num oor" id="n1">---</div>
+      <div class="big-unit">mm</div>
+      <div class="gauge-wrap">
+        <div class="gauge-lbl"><span>0</span><span>4000mm</span></div>
+        <div class="gauge-track"><div class="gauge-fill" id="g1"></div></div>
+      </div>
+    </div>
+
+    <div class="panel ch1">
+      <div class="panel-title">CH1 STATISTICS</div>
+      <div class="stat-row ch1"><span class="stat-label">MIN</span><span class="stat-val" id="1-min">---</span></div>
+      <div class="stat-row ch1"><span class="stat-label">MAX</span><span class="stat-val" id="1-max">---</span></div>
+      <div class="stat-row ch1"><span class="stat-label">AVG</span><span class="stat-val" id="1-avg">---</span></div>
+      <div class="stat-row ch1"><span class="stat-label">STDEV</span><span class="stat-val" id="1-std">---</span></div>
+      <div class="stat-row ch1"><span class="stat-label">CNT</span><span class="stat-val" id="1-cnt">0</span></div>
+      <div class="stat-row"><span class="stat-label">OOR</span><span class="stat-val" id="1-oor" style="color:var(--red)">0</span></div>
+    </div>
+
+  </div>
+
+  <!-- ── 가운데: 차트 + 로그 ── -->
+  <div class="chart-area">
+
+    <div class="panel neutral chart-panel">
+      <div class="panel-title">REAL-TIME WAVEFORM
+        <span style="float:right;color:var(--cyan)">■ CH1</span>
+        <span style="float:right;color:var(--lime);margin-right:10px">■ CH2</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel neutral">
+      <div class="panel-title">DATA LOG</div>
+      <div class="log-scroll" id="log"></div>
+    </div>
+
+  </div>
+
+  <!-- ── CH2 사이드 패널 ── -->
+  <div class="ch-card">
+
+    <div class="panel ch2 big-box" id="vp2">
+      <div class="panel-title ch-label" style="color:var(--lime)">CH 2 · SENSOR B</div>
+      <div class="big-num oor" id="n2">---</div>
+      <div class="big-unit">mm</div>
+      <div class="gauge-wrap">
+        <div class="gauge-lbl"><span>0</span><span>4000mm</span></div>
+        <div class="gauge-track"><div class="gauge-fill" id="g2"></div></div>
+      </div>
+    </div>
+
+    <div class="panel ch2">
+      <div class="panel-title">CH2 STATISTICS</div>
+      <div class="stat-row ch2"><span class="stat-label">MIN</span><span class="stat-val" id="2-min">---</span></div>
+      <div class="stat-row ch2"><span class="stat-label">MAX</span><span class="stat-val" id="2-max">---</span></div>
+      <div class="stat-row ch2"><span class="stat-label">AVG</span><span class="stat-val" id="2-avg">---</span></div>
+      <div class="stat-row ch2"><span class="stat-label">STDEV</span><span class="stat-val" id="2-std">---</span></div>
+      <div class="stat-row ch2"><span class="stat-label">CNT</span><span class="stat-val" id="2-cnt">0</span></div>
+      <div class="stat-row"><span class="stat-label">OOR</span><span class="stat-val" id="2-oor" style="color:var(--red)">0</span></div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <button class="btn active" id="btn-pause">⏸ PAUSE</button>
+  <button class="btn" id="btn-clear">🗑 CLEAR</button>
+  <label><input type="checkbox" id="chk-auto"> AUTO SCROLL</label>
+  <div class="thr-wrap">
+    NEAR &lt; <input type="number" id="thr-near" value="200" min="0"> mm
+    &nbsp; FAR &gt; <input type="number" id="thr-far"  value="1500" min="0"> mm
+  </div>
+</footer>
+
+<script>
+// ── 차트 ──────────────────────────────────────────
+const MAX_PTS = 120;
+const labels  = [];
+const d1 = [], d2 = [];   // CH1, CH2 데이터
+
+const chart = new Chart(document.getElementById('chart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'CH1',
+        data: d1,
+        borderColor: '#00e5ff',
+        backgroundColor: 'rgba(0,229,255,.06)',
+        borderWidth: 1.8,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        fill: true,
+        tension: 0.35,
+        spanGaps: false,
+      },
+      {
+        label: 'CH2',
+        data: d2,
+        borderColor: '#aaff00',
+        backgroundColor: 'rgba(170,255,0,.05)',
+        borderWidth: 1.8,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        fill: true,
+        tension: 0.35,
+        spanGaps: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      x: { ticks:{color:'#3a5068',maxTicksLimit:8,font:{family:'Share Tech Mono',size:10}}, grid:{color:'#0d1e2e'} },
+      y: { min:0, ticks:{color:'#3a5068',font:{family:'Share Tech Mono',size:10}}, grid:{color:'#0d1e2e'},
+           title:{display:true,text:'mm',color:'#3a5068',font:{size:10}} }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor:'#0d1520', borderColor:'#1a2e44', borderWidth:1,
+        titleColor:'#b0cfe8', bodyColor:'#b0cfe8',
+        titleFont:{family:'Orbitron',size:10}, bodyFont:{family:'Share Tech Mono',size:11},
+        callbacks: {
+          label: ctx => {
+            const col = ctx.datasetIndex === 0 ? ' CH1' : ' CH2';
+            return `${col}: ${ctx.parsed.y ?? 'OOR'} mm`;
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 상태 ──────────────────────────────────────────
+let paused = false;
+const state = {
+  1: { samples:[], oor:0, times:[] },
+  2: { samples:[], oor:0, times:[] },
+};
+const GAUGE_MAX = 4000;
+const THR_NEAR = () => parseInt(document.getElementById('thr-near').value) || 200;
+const THR_FAR  = () => parseInt(document.getElementById('thr-far').value)  || 1500;
+
+// ── 공유 타임라벨 (CH1 기준으로 push, CH2는 같은 레이블 사용) ──
+let lastTs = '';
+
+// ── 통계 업데이트 ──────────────────────────────────
+function updateStats(ch) {
+  const s = state[ch];
+  const pfx = ch + '-';
+  if (s.samples.length === 0) return;
+  const mn  = Math.min(...s.samples);
+  const mx  = Math.max(...s.samples);
+  const avg = s.samples.reduce((a,b)=>a+b,0)/s.samples.length;
+  const std = Math.sqrt(s.samples.reduce((a,b)=>a+(b-avg)**2,0)/s.samples.length);
+  document.getElementById(pfx+'min').textContent = mn+'mm';
+  document.getElementById(pfx+'max').textContent = mx+'mm';
+  document.getElementById(pfx+'avg').textContent = avg.toFixed(1)+'mm';
+  document.getElementById(pfx+'std').textContent = std.toFixed(1)+'mm';
+  document.getElementById(pfx+'cnt').textContent = s.samples.length;
+  document.getElementById(pfx+'oor').textContent = s.oor;
+}
+
+// ── 현재값 표시 업데이트 ──────────────────────────
+function updateDisplay(ch, val, oor) {
+  const numEl   = document.getElementById('n'+ch);
+  const gaugeEl = document.getElementById('g'+ch);
+  const vpEl    = document.getElementById('vp'+ch);
+  const near = THR_NEAR(), far = THR_FAR();
+
+  if (oor || val === null) {
+    numEl.textContent = 'OOR';
+    numEl.className = 'big-num oor';
+    gaugeEl.style.width = '0%';
+    gaugeEl.className = 'gauge-fill';
+    vpEl.classList.remove('alert');
+    return;
+  }
+
+  numEl.textContent = val;
+  gaugeEl.style.width = Math.min(100,(val/GAUGE_MAX)*100)+'%';
+
+  if (val < near) {
+    numEl.className = 'big-num danger';
+    gaugeEl.className = 'gauge-fill danger';
+    vpEl.classList.add('alert');
+  } else if (val > far) {
+    numEl.className = 'big-num warn';
+    gaugeEl.className = 'gauge-fill warn';
+    vpEl.classList.add('alert');
+  } else {
+    numEl.className = 'big-num';
+    gaugeEl.className = 'gauge-fill';
+    vpEl.classList.remove('alert');
+  }
+}
+
+// ── Y축 범위 자동 조정 ────────────────────────────
+function autoYAxis() {
+  const all = [...d1, ...d2].filter(v=>v!==null);
+  if (all.length === 0) return;
+  chart.options.scales.y.min = Math.max(0, Math.min(...all) - 80);
+  chart.options.scales.y.max = Math.max(...all) + 120;
+}
+
+// ── 데이터 수신 ───────────────────────────────────
+function onDistance(d) {
+  if (paused) return;
+
+  const ch  = d.ch;           // 1 or 2 (0 = OOR 채널불명)
+  const val = d.value;
+  const oor = d.outOfRange;
+
+  const now = new Date();
+  const ts  = now.toTimeString().slice(0,8)+'.'+String(now.getMilliseconds()).padStart(3,'0');
+
+  // 로그
+  const logDiv = document.getElementById('log');
+  const line   = document.createElement('div');
+  line.className = 'log-line';
+  const chTag = ch === 0 ? 'log-oor' : (ch===1?'log-ch1':'log-ch2');
+  const chLbl = ch === 0 ? 'CH?'     : 'CH'+ch;
+  const valStr = (oor||val===null) ? 'OUT OF RANGE' : val+' mm';
+  line.innerHTML = `<span class="log-ts">${ts}</span><span class="${chTag}">[${chLbl}] ${valStr}</span>`;
+  logDiv.appendChild(line);
+  if (document.getElementById('chk-auto').checked) logDiv.scrollTop = logDiv.scrollHeight;
+  while (logDiv.children.length > 300) logDiv.removeChild(logDiv.firstChild);
+
+  // 채널 불명 OOR → 양쪽 모두 처리
+  const channels = ch === 0 ? [1,2] : [ch];
+
+  channels.forEach(c => {
+    const s = state[c];
+    if (oor || val === null) {
+      s.oor++;
+    } else {
+      s.samples.push(val);
+      if (s.samples.length > 5000) s.samples.shift();
+      s.times.push(Date.now());
+      if (s.times.length > 20) s.times.shift();
+    }
+    updateDisplay(c, val, oor);
+    updateStats(c);
+  });
+
+  // 차트에 포인트 추가
+  // 타임라벨은 CH1 도착 시 push, CH2는 같은 인덱스 활용
+  if (ch === 1 || ch === 0) {
+    labels.push(ts.slice(0,8));
+    d1.push(oor||val===null ? null : val);
+    d2.push(d2.length < d1.length ? d2[d2.length-1] ?? null : null); // 이전값 유지
+    if (labels.length > MAX_PTS) { labels.shift(); d1.shift(); d2.shift(); }
+  } else if (ch === 2) {
+    // CH2 데이터 → 마지막 포인트 갱신 or 새 포인트
+    if (d2.length < d1.length) {
+      d2[d1.length-1] = oor||val===null ? null : val;
+    } else {
+      labels.push(ts.slice(0,8));
+      d2.push(oor||val===null ? null : val);
+      d1.push(d1[d1.length-1] ?? null);
+      if (labels.length > MAX_PTS) { labels.shift(); d1.shift(); d2.shift(); }
+    }
+  }
+
+  autoYAxis();
+  chart.update('none');
+
+  // Hz (CH1 기준)
+  if (ch===1 && state[1].times.length>1) {
+    const t = state[1].times;
+    const hz = ((t.length-1)/((t[t.length-1]-t[0])/1000)).toFixed(1);
+    document.getElementById('hz').textContent = hz+' Hz';
+  }
+}
+
+// ── Socket.io ─────────────────────────────────────
+const socket = io();
+socket.on('connect',    ()=>{ document.getElementById('led').className='led on';  document.getElementById('conn-lbl').textContent='CONNECTED'; });
+socket.on('disconnect', ()=>{ document.getElementById('led').className='led err'; document.getElementById('conn-lbl').textContent='DISCONNECTED'; });
+socket.on('distance', onDistance);
+
+// ── 버튼 ──────────────────────────────────────────
+document.getElementById('btn-pause').addEventListener('click', function() {
+  paused = !paused;
+  this.textContent = paused ? '▶ RESUME' : '⏸ PAUSE';
+  this.classList.toggle('active', !paused);
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  labels.length=0; d1.length=0; d2.length=0;
+  [1,2].forEach(c=>{ state[c].samples=[]; state[c].oor=0; state[c].times=[]; });
+  chart.update();
+  document.getElementById('log').innerHTML='';
+  [1,2].forEach(c=>{
+    ['min','max','avg','std'].forEach(k=>document.getElementById(c+'-'+k).textContent='---');
+    document.getElementById(c+'-cnt').textContent='0';
+    document.getElementById(c+'-oor').textContent='0';
+    document.getElementById('n'+c).textContent='---';
+    document.getElementById('n'+c).className='big-num oor';
+    document.getElementById('g'+c).style.width='0%';
+  });
+});
+
+// ── 업타임 ────────────────────────────────────────
+const t0 = Date.now();
+setInterval(()=>{
+  const s=Math.floor((Date.now()-t0)/1000);
+  document.getElementById('uptime').textContent=
+    [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,'0')).join(':');
+},1000);
+</script>
+</body>
+</html>
