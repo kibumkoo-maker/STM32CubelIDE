@@ -44,7 +44,7 @@ PA7 (TI2)  ──┬──┬──┬──┬──    rising rising   rising 
 * 오버플로우 자연 처리: int16_t 차분 연산으로 16-bit 타이머 랩어라운드에 강건
 ## 🧠 주요 코드 설명
 1.타이머 초기화 (MX_TIM3_Encoder_Init)
- * 레지스터 직접 설정 방식으로 HAL 의존성 없이 동작:
+ *레지스터 직접 설정 방식으로 HAL 의존성 없이 동작:
 ```
 TIM3->SMCR = (0x03 << 0);       // Encoder Mode 3 (TI1+TI2)
 TIM3->CCMR1 = (0x01 << 0) |     // CC1S=01: TI1 selected
@@ -53,7 +53,7 @@ TIM3->PSC = 0;                   // 프리스케일러 없음 (최대 해상도)
 TIM3->ARR = 0xFFFF;              // 16-bit 풀 레인지
 ```
 2. 위치 추적 (PrintEncoderStatus)
-*16-bit 타이머 카운터의 차분을 누적하여 32-bit 위치 값으로 확장:
+* 16-bit 타이머 카운터의 차분을 누적하여 32-bit 위치 값으로 확장:
 ```
 int16_t diff = (int16_t)(TIM3->CNT) - g_last_count;
 g_encoder_pos += diff;           // 오버플로우에 강건한 누적
