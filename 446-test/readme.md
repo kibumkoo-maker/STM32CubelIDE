@@ -334,13 +334,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 ```
 ---
 * 정방향
-  
 ![](004.png)  
 
-
 * 역방향
-  
 ![](006.png)  
 
 * 오실로스코프 파형
-  ![](007.jpeg)
+![](007.jpeg)
