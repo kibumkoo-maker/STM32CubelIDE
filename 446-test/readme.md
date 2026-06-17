@@ -335,7 +335,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 ---
 * 정방향
 ![](004.png)  
-![](008.png)  
+![](008.jpeg)  
 * 역방향
 ![](006.png)  
 ![](007.jpeg)
