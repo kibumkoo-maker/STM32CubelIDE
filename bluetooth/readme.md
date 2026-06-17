@@ -19,6 +19,11 @@ pip install pyserial
 ![](002.png)
 
 
+### 코드에서 포트, 블루투스 이름 , 비밀번호 변경
+
+![](003.png)
+
+
 ---
 ## 1. BT06 DM2147 (5V 입력일때 LED 동작)
 <img width="442" height="173" alt="BT06_DM2147" src="https://github.com/user-attachments/assets/9b92e6a3-71bf-4c2b-843f-63ae17afe8d0" />
