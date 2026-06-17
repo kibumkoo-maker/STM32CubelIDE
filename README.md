@@ -1,7 +1,7 @@
 # Rotary_Encoder_TIM
 
 
-# NUCLEO-F103RB 기준 하드웨어 구성:
+## NUCLEO-F103RB 기준 하드웨어 구성:
 * Encoder A Phase (CH1): PA6 (TIM3_CH1) ← D12
 * Encoder B Phase (CH2): PA7 (TIM3_CH2) ← D11
 * USART2 (디버그 출력): PA2(TX), PA3(RX) — 115200 baud
