@@ -1,6 +1,7 @@
 # BLUETOOTH Module
 
 ### USB 블루투스 시리얼 포트찾기
+ * 내 pc-->추가옵션표시 -->관리-->장치관리자
 ![](001.png)
 
 ### 통신용 pyserial 설치
