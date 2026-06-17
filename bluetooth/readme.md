@@ -1,7 +1,13 @@
 # BLUETOOTH Module
 
-## USB 블루투스 시리얼 포트찾기
+### USB 블루투스 시리얼 포트찾기
 ![](001.png)
+
+### 통신용 pyserial 설치
+ * 파이선 터미널에서 다음 명령어 실행
+```python
+pip install pyserial
+```
 
 
 ---
