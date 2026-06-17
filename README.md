@@ -88,6 +88,7 @@ POS:     +0  CNT:     0  DIR: CW (+)
 #define PRINT_THRESHOLD           1
 /* USER CODE END PD */
 ```
+```c
 /* USER CODE BEGIN PV */
 /* Encoder position tracking */
 static volatile int32_t  g_encoder_pos   = 0;    /* Cumulative encoder position */
@@ -99,10 +100,14 @@ static volatile uint8_t  g_btn_reset     = 0;
 /* User LED on/off flag for activity indication */
 static          uint8_t  g_led_active    = 0;
 /* USER CODE END PV */
+```
+```c
 /* USER CODE BEGIN PFP */
 static void MX_TIM3_Encoder_Init(void);
 static void PrintEncoderStatus(void);
 /* USER CODE END PFP */
+```
+```c
 /* USER CODE BEGIN 0 */
 
 /**
@@ -249,6 +254,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 }
 
 /* USER CODE END 0 */
+```
+```c
     /* USER CODE BEGIN 2 */
 
     /* Initialize TIM3 in encoder mode */
@@ -278,6 +285,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     HAL_UART_Transmit(&huart2, (uint8_t*)start_msg, sizeof(start_msg) - 1, 100);
 
     /* USER CODE END 2 */
+```
+```c
     /* USER CODE BEGIN WHILE */
     while (1)
     {
@@ -311,6 +320,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         HAL_Delay(5);
 
         /* USER CODE END WHILE */
+```
 정방향
 
 
