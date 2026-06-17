@@ -74,11 +74,13 @@ POS:    +22  CNT:    22  DIR: CCW (-)
 >>> ENCODER RESET (B1 pressed) <<<
 POS:     +0  CNT:     0  DIR: CW (+)
 ```
+---
 ```c
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 /* USER CODE END Includes */
 ```
+---
 ```c
 /* USER CODE BEGIN PD */
 /* Timer period for 16-bit encoder counter (max value) */
@@ -88,6 +90,7 @@ POS:     +0  CNT:     0  DIR: CW (+)
 #define PRINT_THRESHOLD           1
 /* USER CODE END PD */
 ```
+---
 ```c
 /* USER CODE BEGIN PV */
 /* Encoder position tracking */
@@ -101,12 +104,14 @@ static volatile uint8_t  g_btn_reset     = 0;
 static          uint8_t  g_led_active    = 0;
 /* USER CODE END PV */
 ```
+---
 ```c
 /* USER CODE BEGIN PFP */
 static void MX_TIM3_Encoder_Init(void);
 static void PrintEncoderStatus(void);
 /* USER CODE END PFP */
 ```
+---
 ```c
 /* USER CODE BEGIN 0 */
 
