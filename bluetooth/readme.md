@@ -23,6 +23,8 @@ pip install pyserial
 
 ![](003.png)
 
+### pc에서 블루투스 페어링 및 연결
+![](004.png)
 
 ---
 ## 1. BT06 DM2147 (5V 입력일때 LED 동작)
