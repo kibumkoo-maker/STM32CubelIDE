@@ -343,3 +343,4 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 ![](006.png)  
 
 * 오실로스코프 파형
+  ![](007.jpeg)
