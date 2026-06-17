@@ -28,6 +28,11 @@ pip install pyserial
 ---
 ### pc에서 블루투스 페어링 및 연결
 ![](004.png)
+
+### Teraterm 에서 모듈과 랜카드 연결확인
+* CoM7 모듈에서 입력 ---> Com9 랜카드 수신 확인
+![](007.png)
+
 ---
 ## 1. BT06 DM2147 (5V 입력일때 LED 동작)
 <img width="442" height="173" alt="BT06_DM2147" src="https://github.com/user-attachments/assets/9b92e6a3-71bf-4c2b-843f-63ae17afe8d0" />
