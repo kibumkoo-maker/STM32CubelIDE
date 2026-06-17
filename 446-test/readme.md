@@ -9,8 +9,10 @@
 * USART2 (디버그 출력): PA2(TX), PA3(RX) — 115200 baud
 * B1 버튼: PC13 — Encoder count 리셋
 * LD2: PA5 — 동작 표시 LED
-
-
+![](001.png)
+![](002.png)
+![](003.png)
+![](005.png)
 
 
 
@@ -332,6 +334,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 ```
 ---
 * 정방향
+![](004.png)  
 
 
 * 역방향
+![](005.png)  
+
