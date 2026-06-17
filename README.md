@@ -30,7 +30,7 @@ C:\work\stm32_rotary_encoder\
 | LD2 (LED)    | PA5    | -    | Built-in LED |
 
 ## ⚙️ TIM3 Encoder Mode 동작 원리
- *타이머를 Encoder Mode TI1+TI2 (SMS=011) 로 설정하여 하드웨어적으로 로터리 엔코더의 위상차를 감지합니다:
+ * 타이머를 Encoder Mode TI1+TI2 (SMS=011) 로 설정하여 하드웨어적으로 로터리 엔코더의 위상차를 감지합니다:
 ```   
 PA6 (TI1)  ──┬──┬──┬──┬──    ↑    ↑         ↑    ↑
              │  │  │  │      TI1  TI2       TI1  TI2
