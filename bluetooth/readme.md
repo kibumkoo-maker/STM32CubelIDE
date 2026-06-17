@@ -9,6 +9,13 @@
 pip install pyserial
 ```
 
+### 블루투스 모듈 HC-06과 USB케이블연결
+ * green -- RX
+ * white -- TX
+ * Black -- GND
+ * Red   -- 5V(VCC)
+![](002.png)
+
 
 ---
 ## 1. BT06 DM2147 (5V 입력일때 LED 동작)
