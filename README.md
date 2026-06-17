@@ -260,6 +260,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 /* USER CODE END 0 */
 ```
+---
 ```c
     /* USER CODE BEGIN 2 */
 
@@ -327,6 +328,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
         /* USER CODE END WHILE */
 ```
+---
 * 정방향
 
 
