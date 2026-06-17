@@ -52,12 +52,15 @@ TIM3->CCMR1 = (0x01 << 0) |     // CC1S=01: TI1 selected
 TIM3->PSC = 0;                   // 프리스케일러 없음 (최대 해상도)
 TIM3->ARR = 0xFFFF;              // 16-bit 풀 레인지
 ```
-위치 추적 (PrintEncoderStatus)
-16-bit 타이머 카운터의 차분을 누적하여 32-bit 위치 값으로 확장:
+2. 위치 추적 (PrintEncoderStatus)
+*16-bit 타이머 카운터의 차분을 누적하여 32-bit 위치 값으로 확장:
+```
 int16_t diff = (int16_t)(TIM3->CNT) - g_last_count;
 g_encoder_pos += diff;           // 오버플로우에 강건한 누적
-버튼 리셋 (HAL_GPIO_EXTI_Callback)
-B1 버튼(PC13) Rising Edge 인터럽트 → 메인루프에서 카운터 리셋 + LED 3번 점멸
+```
+3. 버튼 리셋 (HAL_GPIO_EXTI_Callback)
+* B1 버튼(PC13) Rising Edge 인터럽트 → 메인루프에서 카운터 리셋 + LED 3번 점멸
+```  
 📟 USART 출력 예시
 ========================================
   Rotary Encoder Demo (TIM3 Encoder Mode)
@@ -70,9 +73,13 @@ POS:    +24  CNT:    24  DIR: CW (+)
 POS:    +22  CNT:    22  DIR: CCW (-)
 >>> ENCODER RESET (B1 pressed) <<<
 POS:     +0  CNT:     0  DIR: CW (+)
+```
+```c
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 /* USER CODE END Includes */
+```
+```c
 /* USER CODE BEGIN PD */
 /* Timer period for 16-bit encoder counter (max value) */
 #define ENCODER_TIM_PERIOD        0xFFFF
@@ -80,6 +87,7 @@ POS:     +0  CNT:     0  DIR: CW (+)
 /* Minimum position change before printing to USART */
 #define PRINT_THRESHOLD           1
 /* USER CODE END PD */
+```
 /* USER CODE BEGIN PV */
 /* Encoder position tracking */
 static volatile int32_t  g_encoder_pos   = 0;    /* Cumulative encoder position */
