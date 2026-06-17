@@ -15,6 +15,7 @@ pip install pyserial
  * white -- TX
  * Black -- GND
  * Red   -- 5V(VCC)
+   
 ![](002.png)
 
 
