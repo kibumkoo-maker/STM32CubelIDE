@@ -19,14 +19,14 @@ C:\work\stm32_rotary_encoder\
     ├── Inc\main.h
     └── Src\main.c
 ```
-🔌 하드웨어 연결 (NUCLEO-F103RB)
-신호	핀	TIM3 매핑	보드 커넥터
-Encoder Phase A	PA6	TIM3_CH1	D12
-Encoder Phase B	PA7	TIM3_CH2	D11
-USART2 TX	PA2	-	-
-USART2 RX	PA3	-	-
-B1 (Reset)	PC13	-	User Button
-LD2 (LED)	PA5	-	Built-in LED
+## 🔌 하드웨어 연결 (NUCLEO-F103RB)
+|신호	|핀|	TIM3 매핑|	보드 커넥터|
+|Encoder Phase A|	PA6	TIM3_CH1|	D12|
+|Encoder Phase B|	PA7	TIM3_CH2|	D11|
+|USART2 TX|	PA2	|-	|-|
+|USART2 RX|	PA3	|-	|-|
+|B1 (Reset)|	PC13	|-|	User Button|
+|LD2 (LED)|	PA5|	-|	Built-in LED|
 ⚙️ TIM3 Encoder Mode 동작 원리
 타이머를 Encoder Mode TI1+TI2 (SMS=011) 로 설정하여 하드웨어적으로 로터리 엔코더의 위상차를 감지합니다:
 PA6 (TI1)  ──┬──┬──┬──┬──    ↑    ↑         ↑    ↑
