@@ -27,7 +27,7 @@ pip install pyserial
 ![](005.png)
 ---
 ### pc에서 블루투스 페어링 및 연결
-![](004.png)
+![](04.png)
 
 ### Teraterm 에서 모듈과 랜카드 연결확인
 * CoM7 모듈에서 입력 ---> Com9 랜카드 수신 확인
